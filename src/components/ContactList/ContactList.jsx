@@ -1,34 +1,29 @@
-import PropTypes from 'prop-types';
+import { useSelector } from 'react-redux';
+import { getContactsValue, getFilterValue } from '../../redux/contacts/slice';
 import { ContactListItem } from 'components/ContactListItem';
 import { List } from './ContactList.styled';
 
-export function ContactList({ contacts, removeItem }) {
+export function ContactList() {
+  const items = useSelector(getContactsValue);
+  const filterValue = useSelector(getFilterValue);
+
+  const getFilteredContacts = () => {
+    const normalizedFilter = filterValue.toLocaleLowerCase();
+    return filterValue
+      ? items.filter(item =>
+          item.name
+            .toLowerCase()
+            .split(' ')
+            .some(element => element.includes(normalizedFilter))
+        )
+      : items;
+  };
+
   return (
     <List>
-      {contacts
-        .sort((a, b) => a.name.localeCompare(b.name))
-        .map(({ id, name, number }) => {
-          return (
-            <ContactListItem
-              key={id}
-              id={id}
-              name={name}
-              number={number}
-              onDelete={removeItem}
-            ></ContactListItem>
-          );
-        })}
+      {getFilteredContacts().map(({ id }) => {
+        return <ContactListItem key={id} id={id}></ContactListItem>;
+      })}
     </List>
   );
 }
-
-ContactList.propTypes = {
-  contacts: PropTypes.arrayOf(
-    PropTypes.exact({
-      id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      number: PropTypes.string.isRequired,
-    }).isRequired
-  ).isRequired,
-  removeItem: PropTypes.func.isRequired,
-};
